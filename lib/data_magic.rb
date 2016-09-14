@@ -41,6 +41,7 @@ module DataMagic
 
   def self.s3
     if @s3.nil?
+      s3cred = {}
       if ENV['VCAP_APPLICATION']
         s3cred = ::CF::App::Credentials.find_by_service_name(ENV['s3_bucket_service'] || 'bservice')
       else
@@ -48,7 +49,9 @@ module DataMagic
       end
       logger.info "s3cred = #{s3cred.inspect}"
       if ENV['RACK_ENV'] != 'test'
-        ::Aws.config[:credentials] = ::Aws::Credentials.new(s3cred['access_key'], s3cred['secret_key'])
+        s3_access_key = s3cred['access_key'] || s3cred['access_key_id']
+        s3_secret_key = s3cred['secret_key'] || s3cred['secret_access_key']
+        ::Aws.config[:credentials] = ::Aws::Credentials.new(s3_access_key, s3_secret_key)
       end
       ::Aws.config[:region] = 'us-east-1'
       @s3 = ::Aws::S3::Client.new
@@ -171,7 +174,7 @@ module DataMagic
   def self.create_index(es_index_name = nil, field_types={})
     logger.info "create_index field_types: #{field_types.inspect[0..500]}"
     es_index_name ||= self.config.scoped_index_name
-    field_types['location'] = 'geo_point'
+    field_types['location'] = 'lat_lon' # custom lat_lon type maps to geo_point with additional field options
     es_types = NestedHash.new.add(es_field_types(field_types))
     nested_object_type(es_types)
     begin
@@ -234,6 +237,11 @@ module DataMagic
                           index_analyzer: 'autocomplete_index',
                           search_analyzer: 'autocomplete_search'
       },
+      'lat_lon' => { type: 'geo_point',
+                     lat_lon: true,
+                     store: true
+
+      }
    }
     field_types.each_with_object({}) do |(key, type), result|
       result[key] = custom_type[type]
