@@ -24,6 +24,7 @@ module DataMagic
             field_values = map_field_names(csv_row, fields, options)
           end
           field_values.merge!(calculated_fields(csv_row, config))
+          field_values.merge!(multivalue_fields(csv_row, config))
           field_values.merge!(lowercase_columns(field_values, config.column_field_types))
           field_values.merge!(additional) if additional
           doc = NestedHash.new.add(field_values)
@@ -44,6 +45,16 @@ module DataMagic
           result = {}
           config.calculated_field_list.each do |name|
             result[name] = calculate(name, row, config.dictionary)
+          end
+          result
+        end
+
+        private
+
+        def multivalue_fields(row, config)
+          result = {}
+          config.multivalue_field_list.each do |field_name|
+            result[field_name] = parse_multivalue(field_name, row, config)
           end
           result
         end
@@ -128,6 +139,25 @@ module DataMagic
           else
             !!value
           end
+        end
+
+        # currently only string values are accepted
+        def parse_multivalue(field_name, row, config)
+          item = config.dictionary[field_name.to_s] || config.dictionary[field_name.to_sym]
+          fail "multivalue: field not found in dictionary #{field_name.inspect}" if item.nil?
+          if item['source'].nil?
+            return nil
+          end
+          row_value = row[item['source'].to_sym]
+          if row_value.nil?
+            return nil
+          end
+          null_value = [*config.null_value] || ['NULL']
+          if null_value.include? row_value
+            return nil
+          end
+          sep = item['separator'] || ','
+          row_value.split("#{sep}").map {|i| i.to_s; i.strip }
         end
 
         # currently we just support 'or' operations on two columns

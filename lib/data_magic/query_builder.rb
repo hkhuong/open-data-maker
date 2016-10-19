@@ -78,7 +78,12 @@ module DataMagic
           if field_type == "name"
             squery = include_name_query(squery, param, value)
           elsif field_type == "autocomplete"
-            squery = autocomplete_query(squery, param, value)
+            match = config.multimatch_field(param)
+            if match
+              squery = multimatch_query(squery, param, match, value)
+            else
+              squery = autocomplete_query(squery, param, value)
+            end
           elsif match = /(.+)__(range|ne|not)\z/.match(param)
             field, operator = match.captures.map(&:to_sym)
             squery = range_query(squery, operator, field, value)
@@ -118,6 +123,33 @@ module DataMagic
               low_freq_operator: "and"
             }
           })
+      end
+
+      def multimatch_query(squery, field_one, field_two, value)
+        squery.should.query(
+           bool: {
+               should: [
+                  {
+                    common: {
+                      field_one => {
+                        query: value,
+                        cutoff_frequency: 0.001,
+                        low_freq_operator: "and"
+                      }
+                    }
+                  },
+                  {
+                    common: {
+                      field_two => {
+                        query: value,
+                        cutoff_frequency: 0.001,
+                        low_freq_operator: "and"
+                      }
+                    }
+                  }
+               ]
+           }
+        )
       end
 
       def integer_list_query(squery, field, value)
