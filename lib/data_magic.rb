@@ -339,6 +339,9 @@ module DataMagic
         logger.info "eservice_uri: #{eservice_uri}"
         opts[:host] = eservice_uri
       end
+      if ENV['ES_URI']
+        opts[:host] = ENV['ES_URI'] # env override for eservice uri
+      end
       logger.info "default local elasticsearch connection"
       @client = ::Elasticsearch::Client.new(opts)
       Stretchy.configure do |c|

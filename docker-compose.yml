@@ -1,0 +1,45 @@
+version: '2'
+
+services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: elasticsearch:1.7
+    environment:
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    networks:
+      - docker_odm
+
+  box:
+    container_name: gembox
+    image: busybox
+    volumes:
+      - /box
+    networks:
+      - docker_odm
+
+  odm:
+    container_name: open-data-maker
+    image: open-data-maker
+    build:
+      context: .
+      dockerfile: .docker/open-data-maker.developement.dockerfile
+    command: .docker/script/start.sh
+    volumes:
+      - .:/open-data-maker
+    volumes_from:
+      - box
+    networks:
+      - docker_odm
+    ports:
+      - "3000:3000"
+    links:
+      - "elasticsearch:es"
+    depends_on:
+      - box
+      - elasticsearch
+    env_file:
+      - .docker/.development.env
+
+networks:
+  docker_odm:
+    driver: bridge
