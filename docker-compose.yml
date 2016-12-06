@@ -4,8 +4,9 @@ services:
   elasticsearch:
     container_name: elasticsearch
     image: quay.io/pires/docker-elasticsearch-kubernetes:1.7.2
-    environment:
-      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    mem_limit: 2g
+    env_file:
+      - .docker/.es.development.env
 
     networks:
       - docker_odm
@@ -25,6 +26,7 @@ services:
       context: .
       dockerfile: .docker/open-data-maker.developement.dockerfile
     command: .docker/script/start.sh
+    mem_limit: 2g
     volumes:
       - .:/open-data-maker
     volumes_from:
@@ -39,7 +41,7 @@ services:
       - box
       - elasticsearch
     env_file:
-      - .docker/.development.env
+      - .docker/.odm.development.env
 
 networks:
   docker_odm:
