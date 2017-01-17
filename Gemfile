@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-ruby '2.2.4'
+ruby '2.2.6'
 
 # Distribute your app as a gem
 # gemspec
@@ -48,7 +48,7 @@ group 'dev' do
 
 end
 # Padrino Stable Gem
-gem 'padrino', '0.12.5'
+gem 'padrino', '0.13.3.3'
 
 gem 'pry', :group => ['development', 'test']
 gem 'pry-byebug', :group => ['development', 'test']
