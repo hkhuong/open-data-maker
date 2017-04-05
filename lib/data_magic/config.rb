@@ -246,6 +246,15 @@ module DataMagic
       @calculated_field_list
     end
 
+    # check for a single field name in the field_types hash and return hash of field_name => field_type
+    # Addtionally will search on partially specified field path (field_name.*) iff single field not found
+    # @return hash | nil
+    def fields_selected(field_name)
+      {field_name => field_type(field_name)} unless field_type(field_name)
+      matches = field_types.select { |key, _| key.start_with? field_name }
+      matches unless matches.empty?
+    end
+
     def field_type(field_name)
       field_types[field_name]
     end
@@ -257,7 +266,7 @@ module DataMagic
       if @field_types.nil?
         @field_types = {}
         fields = {}
-        logger.info "file_config #{file_config.inspect}"
+        logger.info "file_config #{file_config.inspect[0..255]}"
         file_config.each do |f|
           logger.info "f #{f.inspect}"
           if f.keys == ['name']   # only filename, use all the columns
@@ -267,7 +276,7 @@ module DataMagic
             fields.merge!(make_nested(f['nest'], dictionary)) if f['nest']
           end
         end
-        logger.info "field_types #{fields.inspect}"
+        logger.info "field_types #{fields.inspect[0..255]}"
         fields.each do |field_name, info|
           type = info['type'] || "string"
           #logger.info "field #{field_name}: #{type.inspect}"

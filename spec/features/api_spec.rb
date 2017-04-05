@@ -348,6 +348,7 @@ describe 'api', type: 'feature' do
   describe "With residents CSV data" do
     before do
       ENV['DATA_PATH'] = './spec/fixtures/numeric_data'
+      DataMagic.config = DataMagic::Config.new
       DataMagic.init(load_now: false)
       num_rows, fields = DataMagic.import_csv(address_data)
     end

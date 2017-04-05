@@ -57,7 +57,7 @@ module DataMagic
 
       def report_nonexistent_fields(fields, config)
         if fields && !fields.empty? && config.dictionary_only_search?
-          fields.reject { |f| config.field_type(f.to_s) }.
+          fields.reject { |f| config.fields_selected(f.to_s) }.
             map { |f| build_error(error: 'field_not_found', input: f.to_s) }
         else
           []

@@ -199,7 +199,7 @@ describe "DataMagic #search" do
       result = response["results"][0]
       expect(result.keys.length).to eq(2)
       expect(result).to include("location.lat")
-      expect(result).to include("location.lat")
+      expect(result).to include("location.lon")
       expect(result["location.lat"]).to eq sf_location[:lat]
       expect(result["location.lon"]).to eq sf_location[:lon]
     end
@@ -225,6 +225,15 @@ describe "DataMagic #search" do
       expect(response["results"][0]['name']).to eq("New York")
       expect(response["results"][1]['name']).to eq("Los Angeles")
       expect(response["results"][2]['name']).to eq("Chicago")
+    end
+
+    context "can return a subset of attributes" do
+      it "with partially speciifed field paths" do
+        response = DataMagic.search({id: "3651000"}, {:fields => ["location"]})
+        result = response["results"][0]
+        expect(result).to include("location.lat")
+        expect(result).to include("location.lon")
+      end
     end
   end
 
