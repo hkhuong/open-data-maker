@@ -343,6 +343,36 @@ describe 'api', type: 'feature' do
         expect(json_response).to eq(expected)
       end
     end
+
+    describe "with fields option" do
+      context "with a partially specified path as a fields filter param" do
+        let(:expected_results) do
+          [ {
+                "school.name" => "Inquisitive Farm College",
+                "school.state" => "AL",
+                "school.zip" => 35671,
+                "id" => 9,
+                "school.city" => "Tanner"
+            } ]
+        end
+        it "can return a subset of fully specified (expanded) fields" do
+          get '/v1/fakeschool?fields=id,school&school.name=Inquisitive Farm College'
+          expect(last_response).to be_ok
+          expect(json_response).to eq(expected)
+        end
+
+        it "can return a subset of fully specified (expanded) fields when field has trailing period" do
+          get '/v1/fakeschool?fields=id,school.&school.name=Inquisitive Farm College'
+          expect(last_response).to be_ok
+          expect(json_response).to eq(expected)
+        end
+
+        it "will return an error for an ambigous non-complete partially specified path" do
+          get '/v1/fakeschool?fields=id,schoo&school.name=Inquisitive Farm College'
+          expect(last_response.status).to eq(400)
+        end
+      end
+    end
   end
   
   describe "With residents CSV data" do

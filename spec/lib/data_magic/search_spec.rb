@@ -226,15 +226,6 @@ describe "DataMagic #search" do
       expect(response["results"][1]['name']).to eq("Los Angeles")
       expect(response["results"][2]['name']).to eq("Chicago")
     end
-
-    context "can return a subset of attributes" do
-      it "with partially speciifed field paths" do
-        response = DataMagic.search({id: "3651000"}, {:fields => ["location"]})
-        result = response["results"][0]
-        expect(result).to include("location.lat")
-        expect(result).to include("location.lon")
-      end
-    end
   end
 
   describe "with null fields in the data" do

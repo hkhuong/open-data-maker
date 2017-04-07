@@ -19,18 +19,6 @@ module DataMagic
 
         if options[:fields] && !options[:fields].empty?
           query_hash[:fields] = get_restrict_fields(options)
-
-          # search for valid fields under partially named paths
-          fields_selected= IndifferentHash.new({})
-          query_hash[:fields].each do |field_name|
-            fields = config.fields_selected(field_name)
-            fields_selected.merge! fields unless fields.nil?
-          end
-
-          unless fields_selected.empty?
-            query_hash[:fields] = fields_selected.keys.map(&:to_s)
-          end
-
           query_hash[:_source] = false
         else
           query_hash[:_source] = {

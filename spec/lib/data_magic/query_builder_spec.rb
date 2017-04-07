@@ -116,38 +116,6 @@ describe DataMagic::QueryBuilder do
     it_correctly "builds a query"
   end
 
-
-
-  describe "can specify partial path fields to return," do
-
-    before :example do
-      DataMagic.destroy
-      ENV['DATA_PATH'] = './spec/fixtures/nested_files'
-      DataMagic.init(load_now: true)
-      DataMagic.config = DataMagic::Config.new
-    end
-
-    after :example do
-      DataMagic.destroy
-      ENV['DATA_PATH'] = './spec/fixtures/minimal'
-      DataMagic.init(load_now: true)
-      DataMagic.config = DataMagic::Config.new
-    end
-
-    context "the partial path field is expanded to a fully specified field" do
-      subject { {} }
-      let(:options) { { fields: ["id", "2013.earnings"] } }
-      let(:expected_query) { { match_all: {} } }
-      let(:expected_meta)  do
-        { from: 0, size: 20, _source: false,
-          fields: ["id", "2013.earnings.6_yrs_after_entry.median", "2013.earnings.6_yrs_after_entry.percent_gt_25k"]
-        }
-      end
-
-      it_correctly "builds a query"
-    end
-  end
-
   describe "can specify sort order" do
     subject { {} }
     let(:options) { { sort: "population:asc" } }

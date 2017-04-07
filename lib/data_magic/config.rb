@@ -246,15 +246,6 @@ module DataMagic
       @calculated_field_list
     end
 
-    # check for a single field name in the field_types hash and return hash of field_name => field_type
-    # Addtionally will search on partially specified field path (field_name.*) iff single field not found
-    # @return hash | nil
-    def fields_selected(field_name)
-      {field_name => field_type(field_name)} unless field_type(field_name)
-      matches = field_types.select { |key, _| key.start_with? field_name }
-      matches unless matches.empty?
-    end
-
     def field_type(field_name)
       field_types[field_name]
     end
