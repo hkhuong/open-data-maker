@@ -50,16 +50,17 @@ module DataMagic
 
         # row: a hash  (keys may be strings or symbols)
         # valid_types: an array of allowed types
+        # null_value: row values that will map to null
         # field_types: hash field_name : type (float, integer, string)
         # returns a hash where values have been coerced to the new type
         # TODO: move type validation to config load time instead
         def map_column_types(row, config)
           valid_types = config.valid_types
-          null_value = config.null_value || null_value = 'NULL'
+          null_value = [*config.null_value] || ['NULL']
 
           mapped = {}
           row.each do |key, value|
-            if value == null_value
+            if null_value.include? value
               mapped[key] = nil
             else
               type = config.csv_column_type(key)
@@ -76,6 +77,7 @@ module DataMagic
         def lowercase_columns(row, field_types = {})
           new_columns = {}
           row.each do |key, value|
+            next if value.nil?
             type = field_types[key.to_sym] || field_types[key.to_s]
             new_columns["_#{key}"] = value.downcase if type == "name" || type == "autocomplete"
           end
@@ -135,8 +137,8 @@ module DataMagic
           fail "calculate: field not found in dictionary #{field_name.inspect}" if item.nil?
           expr = item['calculate'] || item[:calculate]
           fail ArgumentError, "expected to calculate #{field_name}" if expr.nil?
+          e = Expression.find_or_create(expr)
           vars = {}
-          e = Expression.new(expr)
           e.variables.each do |name|
             vars[name] = fix_field_type(type, row[name.to_sym])
           end

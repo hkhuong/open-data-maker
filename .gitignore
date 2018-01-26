@@ -10,8 +10,10 @@ db/*.db
 .env
 .*.env
 .cfignore
+cf-ssh.yml
 .vagrant
 .idea/
+*profile*
 
 public/stylesheets/application.css*
 

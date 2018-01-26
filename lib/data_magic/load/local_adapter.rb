@@ -12,7 +12,7 @@ module DataMagic
       end
 
       def read
-        File.read(path)
+        File.open(path, 'r:bom|utf-8')
       rescue => e
         if e.message.include? "No such file or directory"
           nil

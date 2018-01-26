@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-ruby '2.2.4'
+ruby '2.3.5'
 
 # Distribute your app as a gem
 # gemspec
@@ -13,6 +13,7 @@ ruby '2.2.4'
 
 # open-data-maker requirements
 gem 'elasticsearch'
+gem 'typhoeus'
 gem 'stretchy'
 gem 'hashie'
 gem 'cf-app-utils'
@@ -24,6 +25,7 @@ gem 'actionview'
 gem 'dotenv'
 gem 'oj'
 gem 'parslet'
+gem 'parallel'
 
 # Project requirements
 gem 'rake'
@@ -42,10 +44,11 @@ group :test do
 end
 
 group 'dev' do
-  gem 'google_drive'
+  gem 'ruby-prof'
+
 end
 # Padrino Stable Gem
-gem 'padrino', '0.12.5'
+gem 'padrino', '0.13.3.3'
 
 gem 'pry', :group => ['development', 'test']
 gem 'pry-byebug', :group => ['development', 'test']

@@ -1,5 +1,5 @@
 # Open Data Maker
-[![Build Status](https://circleci.com/gh/18F/open-data-maker/tree/dev.svg?style=svg)](https://circleci.com/gh/18F/open-data-maker/tree/dev)
+[![Build Status](https://circleci.com/gh/RTICWDT/open-data-maker/tree/dev.svg?style=svg)](https://circleci.com/gh/18F/open-data-maker/tree/dev)
 
 The goal of this project is to make it easy to turn a lot of potentially large
 csv files into open data via an API and the ability for people to download
@@ -22,7 +22,7 @@ See our [Installation Guide](INSTALL.md)
 
 ## How this works
 
-By default, data will be loaded from /sample-data
+By default, data will be loaded from /sample-data when you run `rake import`
 
 * [cities100.csv](sample-data/cities100.csv) - dataset of 100 most populous cities in the US
 * [data.yaml](sample-data/data.yaml) - configuration for

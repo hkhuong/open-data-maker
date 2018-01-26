@@ -1,3 +1,5 @@
+require 'typhoeus'
+require 'typhoeus/adapters/faraday'
 require 'elasticsearch'
 require 'safe_yaml'
 require 'csv'
@@ -41,6 +43,7 @@ module DataMagic
 
   def self.s3
     if @s3.nil?
+      s3cred = {}
       if ENV['VCAP_APPLICATION']
         s3cred = ::CF::App::Credentials.find_by_service_name(ENV['s3_bucket_service'] || 'bservice')
       else
@@ -48,9 +51,11 @@ module DataMagic
       end
       logger.info "s3cred = #{s3cred.inspect}"
       if ENV['RACK_ENV'] != 'test'
-        ::Aws.config[:credentials] = ::Aws::Credentials.new(s3cred['access_key'], s3cred['secret_key'])
+        s3_access_key = s3cred['access_key'] || s3cred['access_key_id']
+        s3_secret_key = s3cred['secret_key'] || s3cred['secret_access_key']
+        ::Aws.config[:credentials] = ::Aws::Credentials.new(s3_access_key, s3_secret_key)
       end
-      ::Aws.config[:region] = 'us-east-1'
+      ::Aws.config[:region] = s3cred['region'] || 'us-east-1'
       @s3 = ::Aws::S3::Client.new
       logger.info "@s3 = #{@s3.inspect}"
     end
@@ -160,7 +165,7 @@ module DataMagic
     hash.each do |key, value|
       if value.is_a?(Hash) && value[:type].nil?  # things are nested under this
         hash[key] = {
-          path: "full", type: "object",
+          type: 'object',
           properties: value
         }
         nested_object_type(value)
@@ -171,7 +176,7 @@ module DataMagic
   def self.create_index(es_index_name = nil, field_types={})
     logger.info "create_index field_types: #{field_types.inspect[0..500]}"
     es_index_name ||= self.config.scoped_index_name
-    field_types['location'] = 'geo_point'
+    field_types['location'] = 'lat_lon' # custom lat_lon type maps to geo_point with additional field options
     es_types = NestedHash.new.add(es_field_types(field_types))
     nested_object_type(es_types)
     begin
@@ -189,38 +194,49 @@ module DataMagic
   end
 
   def self.base_index_hash(es_index_name, es_types)
+    shard_number = (RACK_ENV == 'test') ? 1 : 3
+    replica_number = (RACK_ENV == 'test') ? 0 : 2
     {
-      index: es_index_name,
-      body: {
-        settings: {
-          analysis: {
-            filter: {
-              autocomplete_filter: {
-                  type: 'edge_ngram',
-                  min_gram: 3,
-                  max_gram: 25
-              }
+        index: es_index_name,
+        body: {
+            settings: {
+                number_of_shards: shard_number,
+                number_of_replicas: replica_number,
+                analysis: {
+                    filter: {
+                        autocomplete_filter: {
+                            type: 'edge_ngram',
+                            min_gram: 1,
+                            max_gram: 25,
+                        },
+                        autocomplete_word_delimiter: {
+                            type: 'word_delimiter',
+                            preserve_original: true,
+                            split_on_case_change:false,
+                            split_on_numerics: false,
+                            stem_english_possessive:false
+                        }
+                    },
+                    analyzer: {
+                        autocomplete_index: {
+                            tokenizer: 'whitespace',
+                            filter: ['lowercase', 'autocomplete_word_delimiter', 'autocomplete_filter'],
+                            type: 'custom'
+                        },
+                        autocomplete_search: {
+                            tokenizer: 'whitespace',
+                            filter: ['lowercase','autocomplete_word_delimiter'],
+                            type: 'custom'
+                        }
+                    }
+                }
             },
-            analyzer: {
-              autocomplete_index: {
-                tokenizer: 'standard',
-                filter: ['lowercase', 'stop', 'autocomplete_filter'],
-                type: 'custom'
-              },
-              autocomplete_search: {
-                tokenizer: 'standard',
-                filter: ['lowercase', 'stop'],
-                type: 'custom'
-              }
+            mappings: {
+                document: { # type 'document' is always used for external indexed docs
+                   properties: es_types
+                }
             }
-          }
-        },
-        mappings: {
-          document: { # type 'document' is always used for external indexed docs
-            properties: es_types
-          }
         }
-      }
     }
   end
 
@@ -230,10 +246,8 @@ module DataMagic
       'literal' => {type: 'string', index:'not_analyzed'},
       'name' => {type: 'string', index:'not_analyzed'},
       'lowercase_name' => {type: 'string', index:'not_analyzed', store: false},
-      'autocomplete' => { type: 'string',
-                          index_analyzer: 'autocomplete_index',
-                          search_analyzer: 'autocomplete_search'
-      },
+      'autocomplete' => {type: 'string', analyzer: 'autocomplete_index', search_analyzer: 'autocomplete_search'},
+      'lat_lon' => { type: 'geo_point', lat_lon: true, store: true }
    }
     field_types.each_with_object({}) do |(key, type), result|
       result[key] = custom_type[type]
@@ -277,18 +291,18 @@ module DataMagic
   end
 
   def self.reindex
-    logger.info "index_data_if_needed"
+    logger.info "reindex"
     if @index_thread and @index_thread.alive?
+      logger.info "kill off old indexing process"
       Thread.kill(@index_thread)
       @index_thread = nil
-    else
-      config.delete_index_and_reload_config  # refresh the config
-      logger.info "config loaded... hitting the big RESET button"
-      @index_thread = Thread.new do
-        logger.info "re-indexing..."
+    end
 
-        self.import_with_dictionary
-      end
+    logger.info "DELETE the index and RELOAD config..."
+    config.delete_index_and_reload_config  # refresh the config
+    @index_thread = Thread.new do
+      logger.info "re-indexing!"
+      self.index_with_dictionary
     end
   end
 
@@ -304,18 +318,34 @@ module DataMagic
   end
 
   def self.client
+    timeout = (ENV['INDEX_APP'] == 'enable') ? 10*60 : 5*60
+    opts =
+    {
+      transport_options: {
+        request: {
+          timeout: timeout,
+          open_timeout: timeout
+        }
+      }
+    }
+    if ENV['ES_DEBUG']
+      tracer = Logger.new(STDOUT)
+      tracer.formatter = ->(_s, _d, _p, m) { "#{m.gsub(/^.*$/) { |n| '   ' + n }}\n" }
+      opts[:tracer] = tracer
+    end
     if @client.nil?
       if ENV['VCAP_APPLICATION']    # Cloud Foundry
         logger.info "connect to Cloud Foundry elasticsearch service"
         logger.info "eservice_uri: #{eservice_uri}"
-        @client = ::Elasticsearch::Client.new host: eservice_uri
-        Stretchy.configure do |c|
-          c.client = @client   # use a custom client
-        end
-      else
-        logger.info "default local elasticsearch connection"
-        @client = ::Elasticsearch::Client.new
+        opts[:host] = eservice_uri
       end
+      if ENV['ES_URI']
+        opts[:host] = ENV['ES_URI'] # env override for eservice uri
+      end
+      logger.info "default local elasticsearch connection"
+      @client = ::Elasticsearch::Client.new(opts)
+      @client = Elasticsearch::Client.new(opts)
+      Stretchy.client = @client   # use a custom client
     end
     @client
   end

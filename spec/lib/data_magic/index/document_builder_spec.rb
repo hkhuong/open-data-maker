@@ -3,7 +3,7 @@ require 'data_magic'
 require 'hashie'
 
 describe DataMagic::Index::DocumentBuilder do
-  let(:config)     { DataMagic::Config.new(load_datayaml: false) }
+  let(:config)     { DataMagic::Config.new(load_data_yaml: false) }
   let(:fields)     { {} }
   let(:options)    { {} }
   let(:additional) { {} }
@@ -32,6 +32,33 @@ describe DataMagic::Index::DocumentBuilder do
       let(:expected_document) {{ 'city' => 'New York', 'state' => 'NY' }}
       it_correctly "creates a document"
     end
+  end
+
+  context "with custom null_value" do
+
+    describe "a single null_value mapping" do
+      before do
+        allow(config).to receive(:null_value).and_return(["NULL"])
+      end
+
+      subject {{ name: 'Smithville', sometimesNULL: 'NULL'  }}
+      let(:expected_document) {{ 'name' => 'Smithville',
+                                 'sometimesNULL' => nil }}
+      it_correctly "creates a document"
+    end
+
+    describe "multiple null_value mappings" do
+      before do
+        allow(config).to receive(:null_value).and_return(["NULL","CustomNull"])
+      end
+
+      subject {{ name: 'Smithville', maybeNull: 'CustomNull', sometimesNULL: 'NULL'  }}
+      let(:expected_document) {{ 'name' => 'Smithville',
+                                 'maybeNull' => nil,
+                                 'sometimesNULL' => nil }}
+      it_correctly "creates a document"
+    end
+
   end
 
   context "with type mapping" do
