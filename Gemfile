@@ -41,6 +41,7 @@ group :test do
   gem 'rspec'
   gem 'rspec-mocks'
   gem 'rack-test', :require => 'rack/test'
+  gem 'rspec_junit_formatter'
 end
 
 group 'dev' do
@@ -48,7 +49,7 @@ group 'dev' do
 
 end
 # Padrino Stable Gem
-gem 'padrino', '0.13.3.3'
+gem 'padrino', '0.13.3.4'
 
 gem 'pry', :group => ['development', 'test']
 gem 'pry-byebug', :group => ['development', 'test']
