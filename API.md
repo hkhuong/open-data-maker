@@ -7,6 +7,9 @@ This document explains:
  * Extracting query results in JSON and CSV format
  * Detecting query errors
 
+## API Access for the College Scorecard
+Please note: A valid API key is required for those looking to access the API for the College Scorecard, which is proxied through an API gateway. Developers may register a key at https://api.data.gov/signup for API access. 
+
 ## Introduction to Queries
 
 Each query is expressed as a URL, containing:
