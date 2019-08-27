@@ -51,7 +51,7 @@ end
 # Padrino Stable Gem
 gem 'padrino', '0.13.3.4'
 
-gem 'pry', :group => ['development', 'test']
+gem 'pry'
 gem 'pry-byebug', :group => ['development', 'test']
 gem 'newrelic_rpm'
 
