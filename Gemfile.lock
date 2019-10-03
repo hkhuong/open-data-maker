@@ -69,10 +69,10 @@ GEM
     multipart-post (2.0.0)
     mustermann19 (0.4.4)
       enumerable-lazy
-    newrelic_rpm (3.18.1.330)
+    newrelic_rpm (6.7.0.359)
     nokogiri (1.10.3)
       mini_portile2 (~> 2.4.0)
-    oj (2.12.13)
+    oj (3.9.2)
     padrino (0.13.3.4)
       padrino-admin (= 0.13.3.4)
       padrino-cache (= 0.13.3.4)
@@ -178,7 +178,7 @@ DEPENDENCIES
   liquid (= 3.0.3)
   liquify
   newrelic_rpm
-  oj
+  oj (>= 3.0)
   padrino (= 0.13.3.4)
   parallel
   parslet
@@ -197,7 +197,7 @@ DEPENDENCIES
   typhoeus
 
 RUBY VERSION
-   ruby 2.3.8p459
+   ruby 2.6.3p62
 
 BUNDLED WITH
-   1.17.1
+   1.17.2

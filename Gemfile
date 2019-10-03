@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-ruby '2.3.8'
+ruby '2.6.3'
 
 # Distribute your app as a gem
 # gemspec
@@ -23,7 +23,7 @@ gem 'safe_yaml'
 gem 'aws-sdk', '~> 2'
 gem 'actionview'
 gem 'dotenv'
-gem 'oj'
+gem 'oj', '>=3.0'
 gem 'parslet'
 gem 'parallel'
 
@@ -46,7 +46,6 @@ end
 
 group 'dev' do
   gem 'ruby-prof'
-
 end
 # Padrino Stable Gem
 gem 'padrino', '0.13.3.4'
