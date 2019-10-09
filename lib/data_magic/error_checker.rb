@@ -56,6 +56,7 @@ module DataMagic
       end
 
       def report_nonexistent_fields(fields, config)
+        binding.pry # dump config - find the missing field - is there any mismatch in syntax?
         if fields && !fields.empty? && config.dictionary_only_search?
           fields.reject { |f| config.field_type(f.to_s) }.
             map { |f| build_error(error: 'field_not_found', input: f.to_s) }

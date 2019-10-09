@@ -101,6 +101,7 @@ module DataMagic
     logger.info "FULL_QUERY: #{full_query.inspect}"
 
     time_start = Time.now.to_f
+    binding.pry # dump full_query; what does it look like?
     result = client.search full_query
 
     search_time = Time.now.to_f - time_start
@@ -185,6 +186,8 @@ module DataMagic
               # !n_hash_filtered.nil? ? n_hash_filtered : n_hash
               n_hash
             end
+            
+            binding.pry # dump inner_details - does it include the missing fields?
 
             # Set the nested data type string as the key and the array of inner hits as the value
             nested_details_hash[inn_key] = inner_details
