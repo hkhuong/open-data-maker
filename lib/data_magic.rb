@@ -175,14 +175,15 @@ module DataMagic
               n_hash = n_hash.withdotkeys
 
               # If there is a fields filter for nested datatypes, apply it here
-              if !nested_fields_filter.empty?
-                keys_to_keep = nested_fields_filter.select { |f| f.start_with? inn_key }.map do |n|
-                  n.gsub(inn_key + ".","")
-                end
-                n_hash_filtered = n_hash.select { |k| keys_to_keep.include?(k) }
-              end
+              # if !nested_fields_filter.empty?
+              #   keys_to_keep = nested_fields_filter.select { |f| f.start_with? inn_key }.map do |n|
+              #     n.gsub(inn_key + ".","")
+              #   end
+              #   n_hash_filtered = n_hash.select { |k| keys_to_keep.include?(k) }
+              # end
 
-              !n_hash_filtered.nil? ? n_hash_filtered : n_hash
+              # !n_hash_filtered.nil? ? n_hash_filtered : n_hash
+              n_hash
             end
 
             # Set the nested data type string as the key and the array of inner hits as the value
