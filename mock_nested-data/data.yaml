@@ -1,0 +1,117 @@
+---
+version: Oct-2019
+api: wizard-schools
+index: wizard-school-data
+unique:
+- id
+options:
+  columns: all
+  search: dictionary_only
+null_value:
+- 'NULL'
+- 'PrivacySuppressed'
+
+dictionary:
+  id:
+    source: UNITID
+    type: integer
+    description: Unit ID for institution
+  ope6_id:
+    source: OPEID6
+    description: 6-digit OPE ID for institution
+  school.name:
+    source: INSTNM
+    type: autocomplete
+    description: Institution name
+  school.city:
+    source: CITY
+    type: autocomplete
+    description: City
+  school.state:
+    source: STABBR
+    description: State postcode
+  school.zip:
+    source: ZIP
+    description: ZIP code
+  # program data
+  programs.cip_4_digit.ope6_id:
+    source: OPEID6
+    map: program_data
+    description: 6-digit OPE ID for institution
+  programs.cip_4_digit.school.name:
+    source: INSTNM
+    map: program_data
+    desription: Institution name
+  programs.cip_4_digit.code:
+    source: CIPCODE
+    map: program
+    description: Classification of Instructional Programs (CIP) code for the field of study
+  programs.cip_4_digit.title:
+    source: CIPDESC
+    map: program_debt
+    description: Text description of the field of study CIP Code
+  programs.cip_4_digit.credential.level:
+    source: CREDLEV
+    type: integer
+    map: program
+    descripton: "Level of credential
+      Credentials are categorized into the following levels:
+      1: Undergraduate Certificate or Diploma
+      2: Associate's Degree
+      3: Bachelor's Degree
+      4: Post-baccalaureate Certificate
+      5: Master's Degree
+      6: Doctoral Degree
+      7: First Professional Degree
+      8: Graduate/Professional Certificate"
+  programs.cip_4_digit.credential.title:
+    source: CREDDESC
+    map: program
+    description: Text description of the level of credential
+  programs.cip_4_digit.debt.median_debt:
+    source: DEBTMEDIAN
+    map: program
+    type: integer
+    description: Median federal loan debt of borrowers completing college
+  programs.cip_4_digit.debt.mean_debt:
+    source: DEBTMEAN
+    map: program
+    type: integer
+    description: TMean federal loan debt of borrowers completing college
+
+
+shared_config: &shared_config
+  contents:
+  - earnings
+  - completion
+  - aid
+  - repayment
+  - student
+  - cost
+  - academics
+  - admissions
+
+data_types:
+  nested:
+    - latest.programs.cip_4_digit
+    - 2020.programs.cip_4_digit
+
+partial_map:
+  program_data:
+    root: ope6_id
+    path: programs.cip_4_digit
+    link: programs.cip_4_digit.ope6_id
+
+files:
+  - name: ProgramsMock.csv
+    map: program_data
+    nest:
+      parent_missing: skip
+      key: latest
+      contents:
+      - programs
+  - name: Mock.csv
+    nest:
+      parent_missing: skip
+      key: 2020
+      <<: *shared_config
