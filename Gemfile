@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-ruby '2.6.3'
+ruby '2.6.5'
 
 # Distribute your app as a gem
 # gemspec
@@ -42,6 +42,7 @@ group :test do
   gem 'rspec-mocks'
   gem 'rack-test', :require => 'rack/test'
   gem 'rspec_junit_formatter'
+  gem 'simplecov', require: false
 end
 
 group 'dev' do
