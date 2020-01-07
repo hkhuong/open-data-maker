@@ -1,0 +1,22 @@
+version: '3'
+services:
+  elasticsearch:
+    image: elasticsearch:2.4.4
+    container_name: elasticsearch
+    environment:
+      ES_JAVA_OPTS: "-Dmapper.allow_dots_in_name=true"
+    # volumes:
+    #   - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    ports:
+      - "9200:9200"
+  web:
+    build: .
+    # command: bash -c "padrino start"
+    volumes:
+      - .:/myapp
+    ports:
+      - "3000:3000"
+    environment:
+      - ES_URI=elasticsearch
+    depends_on:
+      - elasticsearch

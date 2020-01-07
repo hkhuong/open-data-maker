@@ -15,7 +15,7 @@ cf-ssh.yml
 .idea/
 *profile*
 coverage/
-
+bin/
 public/stylesheets/application.css*
 
 # expect people to put their own data in /data
