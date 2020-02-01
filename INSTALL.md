@@ -6,6 +6,32 @@ If you just want to install and run, then you can just download a
 You will still need the the dependencies below, but you don't need to
 clone the git repo for the source code.
 
+## Local Docker Development
+
+You have the option of using docker for a local development environment.  Docker offers the ability to easily
+set up local development without needing to mess around with ruby versioning or setting up local Elasticsearch instance.
+
+
+**To start to the container:**
+
+```
+docker-compose up -d
+```
+
+**To stop the container:**
+
+```
+docker-compose down
+```
+
+After starting the container the application can be viewed at: `http://127.0.0.1:3000/`
+
+### Helpful Docker Commands:
+  - Run the import within the docker container: `docker-compose run web rake import`
+  - Enter the `web` container for debugging or interaction: `docker-compose exec web bash`
+  - Stop containers and remove all storage volumes: `docker-compose down -v`
+  - Rebuild web docker image after editing: `docker-compose build`
+
 ## Install Prerequisites
 
 You can run our bootstrap script to make sure you have all the dependencies.
@@ -47,12 +73,18 @@ To get started, you can import sample data with:
 
 `rake import`
 
+or
+
+`docker-compose run web rake import`
+
 ### Start the app
 
 ```
 padrino start
 ```
 Go to: http://127.0.0.1:3000/
+
+**Please Note:** `pardrino start` is automatically run when starting the docker container.
 
 and you should see the text `Welcome to Open Data Maker` with a link to
 the API created by the [sample data](sample-data).  
