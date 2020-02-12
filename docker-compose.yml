@@ -17,6 +17,6 @@ services:
       - "3000:3000"
     environment:
       - ES_URI=elasticsearch
-      - RACK_ENV=test
+      - RACK_ENV=test # Set env to ensure ES configs with replicas 0
     depends_on:
       - elasticsearch
