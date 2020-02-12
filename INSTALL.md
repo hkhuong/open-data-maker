@@ -73,7 +73,7 @@ To get started, you can import sample data with:
 
 `rake import`
 
-or
+if using docker:
 
 `docker-compose run web rake import`
 
